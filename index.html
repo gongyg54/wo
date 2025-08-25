@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>人生修行 · 一点+1</title>
+<style>
+  :root{--bg:#f8fafc;--fg:#0f172a;--muted:#64748b;--card:#ffffffcc;--border:#e2e8f0;--accent:#22c55e}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;background:linear-gradient(160deg,#fdfdfd,#f4faff);color:var(--fg);font-family:"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif}
+  .app{max-width:900px;margin:0 auto;padding:16px 14px 28px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .title{font-weight:900;font-size:20px;letter-spacing:.2px;white-space:nowrap;color:#16a34a;display:flex;align-items:center;gap:6px}
+  .title::before{content:"🌱"}
+  .pill{padding:6px 10px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12px;white-space:nowrap;background:#fafafa}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:22px;box-shadow:0 6px 20px #0001;overflow:hidden}
+  .screen{position:relative;display:grid;place-items:center;padding:28px 12px;min-height:200px}
+  .big{font-size:clamp(52px,14vw,110px);font-weight:900;letter-spacing:-.02em;color:#16a34a;text-shadow:0 3px 12px #0001;white-space:nowrap}
+  .tap{position:absolute;inset:0;z-index:1;pointer-events:auto}
+  .confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-top:1px solid var(--border);background:#fafafacc;position:relative;z-index:2}
+  .cats{display:flex;gap:6px}
+  .chip{border:1px solid var(--border);background:#f0fdf4;color:#166534;padding:6px 10px;border-radius:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s;font-size:13px}
+  .chip[data-active="1"]{background:#16a34a;color:#fff;border-color:#16a34a;transform:scale(1.02)}
+  .actions{display:flex;gap:6px}
+  .btn{border:1px solid var(--border);background:#f9fafb;color:var(--fg);padding:6px 10px;border-radius:10px;font-weight:700;cursor:pointer;white-space:nowrap;font-size:13px}
+  .btn.primary{background:linear-gradient(180deg,#22c55e,#16a34a);border:1px solid #14532d;color:#fff;font-size:15px}
+  .tabs{margin-top:12px;display:flex;gap:6px}
+  .tab{flex:1;text-align:center;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fafafa;color:#muted;font-weight:800;cursor:pointer;white-space:nowrap;transition:.2s}
+  .tab[data-active="1"]{color:#fff;background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#16a34a}
+  .view{margin-top:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .stat{padding:12px;border:1px solid var(--border);border-radius:14px;background:#fafafa;white-space:nowrap}
+  .stat h4{margin:0 0 6px 0;font-size:13px;color:#64748b}
+  .stat .n{font-weight:900;font-size:28px;color:#16a34a}
+  table{width:100%;border-collapse:collapse;background:#fff}
+  th,td{border-bottom:1px solid var(--border);padding:10px 8px;text-align:left;font-size:14px;white-space:nowrap}
+  th{color:#64748b;font-weight:800}
+  .toast{position:fixed;top:32%;left:50%;transform:translate(-50%,-50%) scale(.92) rotate(-1deg);background:#fff;color:#0f172a;border:2.5px solid #86efac;padding:22px 26px;border-radius:26px 26px 26px 12px;opacity:0;transition:opacity .35s,transform .35s;font-size:20px;font-weight:900;text-align:center;max-width:82%;line-height:1.35;box-shadow:0 14px 36px #0002;z-index:1000;outline:3px solid #bbf7d0;outline-offset:3px;pointer-events:none}
+  .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+  .toast::before{content:"";position:absolute;bottom:-14px;left:42%;width:0;height:0;border:14px solid transparent;border-top-color:#86efac;filter:drop-shadow(0 2px 0 #bbf7d0)}
+  .toast::after{content:"";position:absolute;bottom:-11px;left:42%;width:0;height:0;border:12px solid transparent;border-top-color:#fff}
+  textarea.pretty{width:100%;min-height:160px;border-radius:18px;border:1.5px solid var(--border);background:linear-gradient(180deg,#fff,#f9fafb);padding:14px 16px;font-size:14px;box-shadow:inset 0 2px 6px #0001}
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">人生修行</div>
+      <div class="pill" id="datepill">——</div>
+    </header>
+
+    <div class="card">
+      <div class="screen">
+        <div class="big" id="todayTotal">0</div>
+        <div class="tap" id="tap" aria-label="点一下 +1"></div>
+        <div class="confetti" id="confetti"></div>
+      </div>
+      <div class="toolbar">
+        <div class="cats" id="cats"></div>
+        <div class="actions">
+          <button class="btn" id="undo">撤销</button>
+          <button class="btn primary" id="plus">+1</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab" data-k="today" data-active="1">今日</div>
+      <div class="tab" data-k="week">本周</div>
+      <div class="tab" data-k="year">全年</div>
+      <div class="tab" data-k="setup">设置</div>
+    </div>
+
+    <div class="view" id="view"></div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+<script>
+const PRAISE_RATE = 1/3
+const EMO = ['🌸','🌟','🍀','🐣','✨','🎈','🍓','💫']
+const PRAISES=[
+  '你又靠近真正的自己了一步。','太棒了！你在兑现对自己的承诺。','稳！这一步为长期主义加码。','自我掌控 +1，未来焦虑 -1。','复利正在发生，你正在发光。','这一下，是对拖延的漂亮反击。','你在为更自由的自己投票。','小小的一点，意义不小。','把节奏握在手里，世界就稳了。','行动是一种自我尊重。','今天的你，比昨天更完整。','向前的你，值得掌声。','方向对了，步子就可以小。','把小事做稳，人生会自己长大。','你在训练“随时开始”的能力。','开始 > 完美。行动即胜利。','每一分，都是未来感谢的理由。','坚持的人，幸运会追上来。','微小积累，终将震撼。','选择成长，而不是放弃。']
+
+const KEY_EVENTS='triPoints.events.v1',KEY_META='triPoints.meta.v1',KEY_LAST='triPoints.last.v1'
+let events=JSON.parse(localStorage.getItem(KEY_EVENTS)||'[]')
+let meta=JSON.parse(localStorage.getItem(KEY_META)||'{}')
+meta.cats=['自律','成长','连接']
+if(!meta.reasons){meta.reasons={0:'',1:'',2:''}}
+let active=+(localStorage.getItem(KEY_LAST)||0)
+
+const EL={cats:document.getElementById('cats'),tap:document.getElementById('tap'),plus:document.getElementById('plus'),undo:document.getElementById('undo'),todayTotal:document.getElementById('todayTotal'),view:document.getElementById('view'),toast:document.getElementById('toast'),confetti:document.getElementById('confetti'),datepill:document.getElementById('datepill')}
+
+function save(){localStorage.setItem(KEY_EVENTS,JSON.stringify(events))}
+function saveMeta(){localStorage.setItem(KEY_META,JSON.stringify(meta))}
+function setActive(i){active=i;localStorage.setItem(KEY_LAST,String(i));renderCats()}
+
+function renderCats(){EL.cats.innerHTML='';meta.cats.forEach((n,i)=>{const b=document.createElement('button');b.className='chip';b.dataset.active=i===active?'1':'0';b.textContent=n;b.onclick=()=>{setActive(i)};EL.cats.appendChild(b)})}
+renderCats()
+
+function addPoint(){events.push({t:Date.now(),c:active});save();confetti();if(Math.random()<PRAISE_RATE){const e=EMO[(Math.random()*EMO.length)|0];toast(e+' '+PRAISES[(Math.random()*PRAISES.length)|0])}updateHeader();}
+function undo(){for(let i=events.length-1;i>=0;i--){if(isToday(new Date(events[i].t))){events.splice(i,1);save();toast('已撤销');updateHeader();return}}toast('今天还没有记录')}
+function resetToday(){const s=startOfDay(new Date()).getTime(),e=endOfDay(new Date()).getTime();events=events.filter(ev=>ev.t<s||ev.t>e);save();updateHeader()}
+
+function startOfDay(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
+function endOfDay(d){const x=new Date(d);x.setHours(23,59,59,999);return x}
+function isToday(d){return d.toDateString()===(new Date()).toDateString()}
+function fmtDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0')}
+function isoWeek(d){const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const dayNum=date.getUTCDay()||7;date.setUTCDate(date.getUTCDate()+4-dayNum);const yearStart=new Date(Date.UTC(date.getUTCFullYear(),0,1));const weekNo=Math.ceil((((date-yearStart)/86400000)+1)/7);return{year:date.getUTCFullYear(),week:weekNo}}
+
+function todayTotalsByCat(){const s=startOfDay(new Date()).getTime(),e=endOfDay(new Date()).getTime();const arr=[0,0,0];events.forEach(ev=>{if(ev.t>=s&&ev.t<=e){arr[ev.c]++}});return arr}
+function todayTotal(){return todayTotalsByCat().reduce((a,b)=>a+b,0)}
+function thisWeekTotal(){const now=new Date(),w=isoWeek(now);let sum=0;events.forEach(ev=>{const d=new Date(ev.t);const wi=isoWeek(d);if(wi.year===w.year&&wi.week===w.week){sum++}});return sum}
+function yearByWeek(){const map=new Map();events.forEach(ev=>{const d=new Date(ev.t);const wi=isoWeek(d);const key=wi.year+'-W'+wi.week;map.set(key,(map.get(key)||0)+1)});const curYear=new Date().getFullYear();const arr=[];for(const[k,v]of map.entries()){const[y,w]=k.split('-W');if(+y===curYear)arr.push({week:+w,total:v})}arr.sort((a,b)=>a.week-b.week);return arr}
+
+function confetti(){const colors=['#fcd34d','#f87171','#60a5fa','#34d399','#f9a8d4'];for(let i=0;i<12;i++){const p=document.createElement('i');p.style.position='absolute';p.style.left=Math.random()*100+'%';p.style.top='55%';p.style.background=colors[(Math.random()*colors.length)|0];p.style.borderRadius='50%';p.style.width='10px';p.style.height='10px';p.style.opacity=0;EL.confetti.appendChild(p);requestAnimationFrame(()=>{p.style.opacity=1;p.style.transition='transform .8s cubic-bezier(.2,.8,.2,1),opacity .9s';const dx=(Math.random()*2-1)*140,dy=-(100+Math.random()*100);p.style.transform=`translate(${dx}px,${dy}px)`;p.style.opacity=0;setTimeout(()=>p.remove(),900)})}}
+
+function toast(msg){EL.toast.textContent=msg;EL.toast.classList.add('show');clearTimeout(window.__t);window.__t=setTimeout(()=>EL.toast.classList.remove('show'),1500)}
+function updateHeader(){EL.todayTotal.textContent=todayTotal();const t=todayTotalsByCat();EL.datepill.textContent=`${fmtDate(new Date())}｜${meta.cats.map((n,i)=>n+':'+t[i]).join(' · ')}`;const tab=document.querySelector('.tab[data-active="1"]').dataset.k;renderView(tab)}
+
+function renderView(which){if(which==='today')return renderToday();if(which==='week')return renderWeek();if(which==='year')return renderYear();if(which==='setup')return renderSetup()}
+function renderToday(){const arr=todayTotalsByCat();EL.view.innerHTML=`<div class="grid3">${meta.cats.map((n,i)=>`<div class=\"stat\"><h4>${n}</h4><div class=\"n\">${arr[i]}</div></div>`).join('')}</div>`}
+function renderWeek(){const sum=thisWeekTotal();EL.view.innerHTML=`<div class="stat"><h4>本周合计</h4><div class=\"n\">${sum}</div></div>`}
+function renderYear(){const rows=yearByWeek();if(!rows.length){EL.view.innerHTML='<div class="hint">本年暂无数据。</div>';return}EL.view.innerHTML=`<table><thead><tr><th>周序号</th><th>总分</th></tr></thead><tbody>${rows.map(r=>`<tr><td>第 ${r.week} 周</td><td>${r.total}</td></tr>`).join('')}</tbody></table>`}
+function renderSetup(){
+  const block=(title,i)=>`<div class=\"stat\" style=\"margin-bottom:10px\"><h4>${title}</h4><textarea class=\"pretty\" id=\"reasons_${i}\">${escapeHtml(meta.reasons[i]||'')}</textarea></div>`
+  EL.view.innerHTML = `
+    ${block('自律',0)}
+    ${block('成长',1)}
+    ${block('连接',2)}
+    <div style=\"display:flex;gap:8px;margin-top:8px\"><button class=\"btn\" id=\"resetTodayBtn\">清零今日</button></div>
+  `
+  const re0=document.getElementById('reasons_0'),re1=document.getElementById('reasons_1'),re2=document.getElementById('reasons_2')
+  const deb=(fn,ms=400)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+  const saveReasons=deb(()=>{meta.reasons={0:re0.value,1:re1.value,2:re2.value};saveMeta();toast('已自动保存')},500)
+  ;[re0,re1,re2].forEach(el=>el.addEventListener('input',saveReasons))
+  document.getElementById('resetTodayBtn').onclick=resetToday
+}
+function escapeHtml(s){return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}
+
+// 绑定交互与初始化
+EL.plus.onclick=addPoint;EL.tap.onclick=addPoint;EL.undo.onclick=undo;
+Array.from(document.querySelectorAll('.tab')).forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.dataset.active='0');t.dataset.active='1';renderView(t.dataset.k)})});
+updateHeader();renderView('today');
+
+// 午夜自动归零显示（不清历史）
+let __last=new Date().getDate();setInterval(()=>{const now=new Date();const d=now.getDate();if(d!==__last){__last=d;updateHeader();toast('✨ 新的一天，归零出发！')}},60000)
+</script>
+</body>
+</html>
